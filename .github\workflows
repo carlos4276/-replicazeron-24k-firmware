@@ -53,8 +53,3 @@ jobs:
           qmk_firmware/*.hex
           qmk_firmware/*.uf2
         if-no-files-found: warn
-        
-    - name: List build files (debug)
-      run: |
-        echo "Looking for build files..."
-        find qmk_firmware -name "*.bin" -o -name "*.hex" -o -name "*.uf2" | head -10
