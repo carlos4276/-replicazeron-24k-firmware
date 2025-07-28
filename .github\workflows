@@ -1,54 +1,60 @@
 name: Build QMK firmware
+
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - '**.c'
-      - '**.h'
-      - '**.json'
-      - '**.mk'
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
-    - name: Checkout QMK
+    - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        repository: qmk/qmk_firmware
-        submodules: recursive
-
-    - name: Checkout keyboard files
-      uses: actions/checkout@v4
-      with:
-        path: keyboards/replicazeron_24k
-
-    - name: Install QMK CLI
-      run: python3 -m pip install qmk
-
+      
     - name: Setup QMK
+      uses: qmk/qmk_action@v1
+      with:
+        path: qmk_firmware
+        
+    - name: Create keyboard directory structure
       run: |
-        qmk setup -y
-        qmk config user.keyboard=replicazeron_24k
-        qmk config user.keymap=default
-
-    - name: Install build dependencies
+        mkdir -p qmk_firmware/keyboards/replicazeron_24k/keymaps/default
+        
+    - name: Copy keyboard files
       run: |
-        sudo apt-get update
-        sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi
-
-    - name: Build firmware
-      run: qmk compile -kb replicazeron_24k -km default
-
-    - name: Upload firmware
+        # Copy main keyboard files
+        cp analog.c qmk_firmware/keyboards/replicazeron_24k/
+        cp analog.h qmk_firmware/keyboards/replicazeron_24k/
+        cp config.h qmk_firmware/keyboards/replicazeron_24k/
+        cp halconf.h qmk_firmware/keyboards/replicazeron_24k/
+        cp info.json qmk_firmware/keyboards/replicazeron_24k/
+        cp mcuconf.h qmk_firmware/keyboards/replicazeron_24k/
+        cp replicazeron_24k.c qmk_firmware/keyboards/replicazeron_24k/
+        cp replicazeron_24k.h qmk_firmware/keyboards/replicazeron_24k/
+        cp rules.mk qmk_firmware/keyboards/replicazeron_24k/
+        
+        # Copy keymap
+        cp keymap.c qmk_firmware/keyboards/replicazeron_24k/keymaps/default/
+        
+    - name: Compile firmware
+      run: |
+        cd qmk_firmware
+        make replicazeron_24k:default
+        
+    - name: Upload firmware artifact
       uses: actions/upload-artifact@v4
       with:
         name: replicazeron_24k_firmware
         path: |
-          .build/replicazeron_24k_default.bin
-          .build/replicazeron_24k_default.hex
-          .build/replicazeron_24k_default.elf
+          qmk_firmware/*.bin
+          qmk_firmware/*.hex
+          qmk_firmware/*.uf2
+        if-no-files-found: warn
+        
+    - name: List build files (debug)
+      run: |
+        echo "Looking for build files..."
+        find qmk_firmware -name "*.bin" -o -name "*.hex" -o -name "*.uf2" | head -10
