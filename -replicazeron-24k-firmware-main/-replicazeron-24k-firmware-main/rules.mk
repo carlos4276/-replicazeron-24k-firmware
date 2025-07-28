@@ -1,0 +1,17 @@
+MCU = STM32F103
+BOOTLOADER = stm32duino
+
+# Build Options
+BOOTMAGIC_ENABLE = yes
+MOUSEKEY_ENABLE = yes
+EXTRAKEY_ENABLE = yes
+CONSOLE_ENABLE = no
+COMMAND_ENABLE = no
+NKRO_ENABLE = yes
+BACKLIGHT_ENABLE = no
+RGBLIGHT_ENABLE = no
+AUDIO_ENABLE = no
+JOYSTICK_ENABLE = yes
+
+# Custom source files
+SRC += analog.c
